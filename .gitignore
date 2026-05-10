@@ -1,0 +1,58 @@
+# ── Secrets / env ──────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Python ─────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+*.egg-info/
+*.egg
+dist/
+build/
+.python-version
+
+# ── Database / generated data ──────────────────────────────
+backend/data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# ── Node / frontend build ──────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Editors ────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Coverage / test artifacts ──────────────────────────────
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
+# ── OS / misc ──────────────────────────────────────────────
+.cache/
+tmp/
+*.bak

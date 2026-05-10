@@ -1,0 +1,2 @@
+This is a placeholder. The frontend uses synthesized Web Audio API tones for alerts.
+Drop a real alert.mp3 here and update useAudio.ts to play it via <audio> if preferred.
