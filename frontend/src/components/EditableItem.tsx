@@ -11,7 +11,7 @@ interface Props {
 
 export function EditableItem({ item, onChange, onRemove, threshold }: Props) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-shadow duration-150 hover:shadow-md">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -20,13 +20,15 @@ export function EditableItem({ item, onChange, onRemove, threshold }: Props) {
               min={1}
               value={item.quantity}
               onChange={(e) => onChange({ ...item, quantity: Number(e.target.value) || 1 })}
-              className="w-12 rounded border border-slate-300 px-1 py-0.5 text-center text-sm"
+              className="w-12 rounded border border-slate-200 px-1 py-0.5 text-center text-sm
+                         transition-colors duration-150"
             />
-            <span className="text-slate-400">×</span>
+            <span className="text-slate-300">×</span>
             <input
               value={item.menu_item_name}
               onChange={(e) => onChange({ ...item, menu_item_name: e.target.value })}
-              className="flex-1 rounded border border-slate-300 px-2 py-1 text-base font-semibold"
+              className="flex-1 rounded border border-slate-200 px-2 py-1 text-sm font-semibold
+                         transition-colors duration-150"
             />
           </div>
           {item.menu_item_id && (
@@ -38,10 +40,12 @@ export function EditableItem({ item, onChange, onRemove, threshold }: Props) {
           <button
             type="button"
             onClick={onRemove}
-            className="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
+            className="rounded p-1 text-slate-300 transition-all duration-150
+                       hover:bg-red-50 hover:text-red-500
+                       active:scale-[0.90]"
             aria-label="Remove item"
           >
-            <Trash2 size={16} />
+            <Trash2 size={15} />
           </button>
         </div>
       </div>
@@ -50,7 +54,7 @@ export function EditableItem({ item, onChange, onRemove, threshold }: Props) {
         <div className="mt-2 space-y-1">
           {item.modifiers.map((m, idx) => (
             <div key={idx} className="flex items-center gap-2 text-sm text-slate-600">
-              <span className="text-slate-400">·</span>
+              <span className="text-slate-300">·</span>
               <input
                 value={m.modifier_name}
                 onChange={(e) => {
@@ -58,7 +62,8 @@ export function EditableItem({ item, onChange, onRemove, threshold }: Props) {
                   next[idx] = { ...m, modifier_name: e.target.value };
                   onChange({ ...item, modifiers: next });
                 }}
-                className="flex-1 rounded border border-slate-200 px-2 py-0.5 text-sm"
+                className="flex-1 rounded border border-slate-200 px-2 py-0.5 text-sm
+                           transition-colors duration-150"
               />
               <ConfidenceTag confidence={m.confidence} threshold={threshold} />
             </div>
@@ -67,8 +72,8 @@ export function EditableItem({ item, onChange, onRemove, threshold }: Props) {
       )}
 
       {item.special_instructions && (
-        <div className="mt-2 rounded bg-slate-50 px-2 py-1 text-xs italic text-slate-600">
-          “{item.special_instructions}”
+        <div className="mt-2 rounded bg-slate-50 px-2 py-1.5 text-xs italic text-slate-500">
+          "{item.special_instructions}"
         </div>
       )}
     </div>

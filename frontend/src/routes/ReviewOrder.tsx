@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type { OrderDetail, ParsedOrder, ReviewAction } from "@/types";
 import { SideBySidePanel } from "@/components/SideBySidePanel";
-import { Send, Flag, X, ArrowLeft } from "lucide-react";
+import { Send, Flag, X, ArrowLeft, Loader2 } from "lucide-react";
 
 export default function ReviewOrder() {
   const { rawId } = useParams<{ rawId: string }>();
@@ -15,15 +15,13 @@ export default function ReviewOrder() {
     queryKey: ["order", rawId],
     queryFn: () => api(`/orders/${rawId}`),
     enabled: !!rawId,
-    refetchInterval: (q) => (q.state.data ? false : 1500), // poll while AI parses
+    refetchInterval: (q) => (q.state.data ? false : 1500),
   });
 
   const [edited, setEdited] = useState<ParsedOrder | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [showReject, setShowReject] = useState(false);
 
-  // Reset edited state whenever the URL changes (user clicked a new alert
-  // while already on a review screen).
   useEffect(() => {
     setEdited(null);
     setShowReject(false);
@@ -53,86 +51,120 @@ export default function ReviewOrder() {
 
   if (isLoading || !data || !edited) {
     return (
-      <div className="rounded-xl bg-white p-8 text-center text-slate-500">
-        <div className="mb-2 text-lg font-semibold">Parsing order with AI…</div>
-        <div className="text-sm">This usually takes a couple of seconds.</div>
+      <div className="flex flex-col items-center justify-center rounded-xl bg-white py-16 text-center shadow-sm ring-1 ring-slate-200/60">
+        <Loader2 size={28} className="mb-3 animate-spin text-bridge-500" />
+        <div className="text-base font-semibold text-slate-700">Parsing order with AI…</div>
+        <div className="mt-1 text-sm text-slate-400">Usually takes a couple of seconds.</div>
       </div>
     );
   }
   if (error) {
-    return <div className="rounded-xl bg-danger-500/10 p-6 text-danger-600">Failed to load order.</div>;
+    return (
+      <div className="rounded-xl bg-danger-500/10 p-6 text-danger-600 ring-1 ring-danger-500/20">
+        Failed to load order.
+      </div>
+    );
   }
 
   const isAlreadyReviewed = data.status !== "pending_review";
 
   return (
     <div className="flex h-full flex-col gap-4">
+      {/* Top bar */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-slate-700"
+          className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-slate-500
+                     transition-colors duration-150 hover:bg-slate-100 hover:text-slate-700
+                     active:scale-[0.97]"
         >
-          <ArrowLeft size={16} /> Back
+          <ArrowLeft size={15} /> Back
         </button>
-        <div className="text-xs text-slate-500">
-          Status: <span className="font-bold uppercase">{data.status}</span>
+        <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {data.status.replace("_", " ")}
         </div>
       </div>
 
+      {/* Main panel */}
       <div className="min-h-0 flex-1 overflow-auto">
         <SideBySidePanel order={data} edited={edited} onChange={setEdited} />
       </div>
 
+      {/* Action bar */}
       {!isAlreadyReviewed && (
         <div className="grid grid-cols-3 gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-md">
           <button
             onClick={() => review.mutate({ action: "send" })}
             disabled={review.isPending}
-            className="flex items-center justify-center gap-2 rounded-lg bg-good-500 py-4 text-lg font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-lg bg-good-500 py-4 text-base font-bold text-white shadow-sm
+                       transition-all duration-150 hover:bg-emerald-700
+                       active:scale-[0.97] active:shadow-none
+                       disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Send size={20} /> Send to Kitchen
+            <Send size={18} /> Send to Kitchen
           </button>
           <button
             onClick={() => review.mutate({ action: "flag" })}
             disabled={review.isPending}
-            className="flex items-center justify-center gap-2 rounded-lg bg-warn-500 py-4 text-lg font-bold text-white hover:bg-orange-600 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-lg bg-warn-500 py-4 text-base font-bold text-white shadow-sm
+                       transition-all duration-150 hover:bg-orange-600
+                       active:scale-[0.97] active:shadow-none
+                       disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Flag size={20} /> Flag for Manager
+            <Flag size={18} /> Flag for Manager
           </button>
           <button
             onClick={() => setShowReject(true)}
             disabled={review.isPending}
-            className="flex items-center justify-center gap-2 rounded-lg bg-danger-500 py-4 text-lg font-bold text-white hover:bg-danger-600 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-lg bg-danger-500 py-4 text-base font-bold text-white shadow-sm
+                       transition-all duration-150 hover:bg-danger-600
+                       active:scale-[0.97] active:shadow-none
+                       disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <X size={20} /> Reject Order
+            <X size={18} /> Reject Order
           </button>
         </div>
       )}
 
+      {/* Reject modal — animated in */}
       {showReject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-2xl">
-            <h3 className="text-lg font-bold">Reject order</h3>
-            <p className="mb-3 text-sm text-slate-500">
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 animate-fade-in sm:items-center"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowReject(false); }}
+        >
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl animate-modal-enter">
+            <h3 className="text-lg font-bold text-slate-800">Reject order</h3>
+            <p className="mb-4 mt-1 text-sm text-slate-500">
               This will not be sent to the kitchen. Tell us why.
             </p>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={4}
-              className="mb-3 w-full rounded-lg border border-slate-300 p-2 text-sm"
+              autoFocus
+              className="mb-4 w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm
+                         transition-colors duration-150 focus:bg-white"
               placeholder="Reason (e.g. item out of stock, customer cancelled)"
             />
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowReject(false)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold"
-              >Cancel</button>
+                className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600
+                           transition-colors duration-150 hover:bg-slate-50
+                           active:scale-[0.97]"
+              >
+                Cancel
+              </button>
               <button
                 onClick={() => review.mutate({ action: "reject", notes: rejectReason })}
                 disabled={!rejectReason.trim()}
-                className="rounded-lg bg-danger-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-              >Reject</button>
+                className="rounded-lg bg-danger-500 px-4 py-2.5 text-sm font-semibold text-white
+                           transition-all duration-150 hover:bg-danger-600
+                           active:scale-[0.97]
+                           disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Reject
+              </button>
             </div>
           </div>
         </div>
