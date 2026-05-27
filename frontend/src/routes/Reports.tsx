@@ -26,69 +26,143 @@ export default function Reports() {
     queryFn: () => api("/reports/allergies?days=30"),
   });
 
-  if (isLoading || !data) return <div className="text-slate-500">Loading reports…</div>;
+  if (isLoading || !data) {
+    return (
+      <div className="grid grid-cols-4 gap-3">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
-      <h2 className="flex items-center gap-2 text-xl font-bold text-slate-700">
-        <BarChart3 size={22} /> Last {data.window_days} days
+      <h2 className="flex items-center gap-2 text-base font-bold text-slate-700">
+        <BarChart3 size={18} className="text-slate-500" />
+        Last {data.window_days} days
       </h2>
 
+      {/* Top metric strip */}
       <div className="grid grid-cols-4 gap-3">
-        <Card label="Total orders" value={data.total_orders} />
-        <Card label="Avg AI confidence" value={`${Math.round(data.avg_ai_confidence * 100)}%`} />
-        <Card label="Flag rate" value={`${data.flagged_pct}%`} accent="text-warn-500" />
-        <Card label="Edit rate" value={`${data.edit_rate_pct}%`} />
+        <MetricCard
+          label="Total orders"
+          value={data.total_orders}
+          accentClass="border-l-bridge-500 text-bridge-700"
+          delay={0}
+        />
+        <MetricCard
+          label="Avg AI confidence"
+          value={`${Math.round(data.avg_ai_confidence * 100)}%`}
+          accentClass="border-l-emerald-400 text-good-500"
+          delay={40}
+        />
+        <MetricCard
+          label="Flag rate"
+          value={`${data.flagged_pct}%`}
+          accentClass="border-l-amber-400 text-warn-500"
+          delay={80}
+        />
+        <MetricCard
+          label="Edit rate"
+          value={`${data.edit_rate_pct}%`}
+          accentClass="border-l-slate-300 text-slate-600"
+          delay={120}
+        />
       </div>
 
+      {/* Detail panels */}
       <div className="grid grid-cols-2 gap-4">
-        <Panel title="Orders per platform">
+        <Panel title="Orders per platform" delay={0}>
           <KvList obj={data.orders_per_platform} />
         </Panel>
-        <Panel title="Review actions">
+        <Panel title="Review actions" delay={50}>
           <KvList obj={data.review_actions} />
         </Panel>
-        <Panel title="86'd-sync results">
+        <Panel title="86'd sync results" delay={100}>
           <KvList obj={data.sync_results} />
-          <div className="mt-2 text-xs text-slate-500">
-            Failure rate: <span className="font-semibold">{data.sync_failure_pct}%</span>
+          <div className="mt-3 border-t border-slate-100 pt-2 text-xs text-slate-500">
+            Failure rate:{" "}
+            <span className={`font-semibold ${data.sync_failure_pct > 10 ? "text-danger-600" : "text-slate-600"}`}>
+              {data.sync_failure_pct}%
+            </span>
           </div>
         </Panel>
-        <Panel title="Allergies seen (30 d)">
-          <KvList obj={allergies} />
+        <Panel title="Allergies seen — last 30 days" delay={150}>
+          <KvList obj={allergies} danger />
         </Panel>
       </div>
     </div>
   );
 }
 
-const Card = ({ label, value, accent = "text-bridge-700" }: { label: string; value: number | string; accent?: string }) => (
-  <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-    <div className={`text-2xl font-bold ${accent}`}>{value}</div>
-    <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
-  </div>
-);
+function MetricCard({
+  label,
+  value,
+  accentClass,
+  delay,
+}: {
+  label: string;
+  value: number | string;
+  accentClass: string;
+  delay: number;
+}) {
+  return (
+    <div
+      className={`animate-enter rounded-xl border border-slate-200 border-l-4 bg-white p-4 shadow-sm ${accentClass}`}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className={`text-3xl font-bold tabular-nums leading-none ${accentClass.split(" ").find(c => c.startsWith("text-")) ?? "text-slate-800"}`}>
+        {value}
+      </div>
+      <div className="mt-1.5 text-xs font-medium text-slate-400">{label}</div>
+    </div>
+  );
+}
 
-const Panel = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="rounded-xl border border-slate-200 bg-white p-4">
-    <h3 className="mb-2 font-semibold text-slate-700">{title}</h3>
-    {children}
-  </div>
-);
+function Panel({
+  title,
+  children,
+  delay,
+}: {
+  title: string;
+  children: React.ReactNode;
+  delay: number;
+}) {
+  return (
+    <div
+      className="animate-enter rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">{title}</h3>
+      {children}
+    </div>
+  );
+}
 
-const KvList = ({ obj }: { obj: Record<string, number> }) => (
-  <ul className="space-y-1 text-sm">
-    {Object.entries(obj).length === 0 ? (
-      <li className="text-slate-400">— none —</li>
-    ) : (
-      Object.entries(obj)
-        .sort((a, b) => b[1] - a[1])
-        .map(([k, v]) => (
-          <li key={k} className="flex justify-between">
-            <span className="capitalize text-slate-600">{k}</span>
-            <span className="font-semibold">{v}</span>
-          </li>
-        ))
-    )}
-  </ul>
-);
+function KvList({ obj, danger }: { obj: Record<string, number>; danger?: boolean }) {
+  const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+  if (entries.length === 0) {
+    return <div className="text-sm text-slate-400">None recorded.</div>;
+  }
+  const max = entries[0][1] || 1;
+  return (
+    <ul className="space-y-2">
+      {entries.map(([k, v]) => (
+        <li key={k} className="space-y-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="capitalize text-slate-600">{k.replace("_", " ")}</span>
+            <span className="font-semibold tabular-nums text-slate-800">{v}</span>
+          </div>
+          {/* Subtle progress bar */}
+          <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-1 rounded-full transition-all duration-500 ${danger ? "bg-danger-500/60" : "bg-bridge-500/40"}`}
+              style={{ width: `${(v / max) * 100}%` }}
+            />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}

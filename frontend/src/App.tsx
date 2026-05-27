@@ -23,7 +23,7 @@ function ProtectedShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-bridge-50">
       <OrderAlert />
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3 shadow-sm">
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200/80 bg-white/90 px-5 py-3 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-bridge-500 text-white text-sm font-bold tracking-tight shadow-sm">
             TB

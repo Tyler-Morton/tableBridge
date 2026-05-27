@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { useSettingsStore } from "@/stores/orderStore";
 import { useAuth } from "@/hooks/useAuth";
-import { Settings as SettingsIcon, Volume2, ToggleRight, KeyRound } from "lucide-react";
+import { Settings as SettingsIcon, Volume2, KeyRound } from "lucide-react";
 
 interface Runtime {
   demo_mode: boolean;
@@ -77,11 +77,16 @@ export default function SettingsPage() {
               type="button"
               disabled={!isOwner}
               onClick={() => toggleDemo.mutate(!runtime.demo_mode)}
-              className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${
-                runtime.demo_mode ? "bg-good-500 text-white" : "bg-slate-200"
-              } disabled:opacity-50`}
+              className={`relative h-6 w-11 rounded-full transition-colors duration-200
+                          ${runtime.demo_mode ? "bg-good-500" : "bg-slate-200"}
+                          disabled:cursor-not-allowed disabled:opacity-50`}
+              aria-checked={runtime.demo_mode}
+              role="switch"
             >
-              <ToggleRight size={14} /> {runtime.demo_mode ? "ON" : "OFF"}
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200
+                            ${runtime.demo_mode ? "translate-x-5" : "translate-x-0.5"}`}
+              />
             </button>
           </Row>
           <Row label={`AI confidence threshold (${Math.round(runtime.ai_confidence_threshold * 100)}%)`}>
