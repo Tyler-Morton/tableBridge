@@ -367,7 +367,7 @@ def _safety_net_allergies(parsed: ParsedOrderOut, incoming: IncomingOrder) -> No
 
     has_allergy_keyword = bool(re.search(r"allerg|anaphyla|severe|do not", text))
 
-    # Top-12 vocabulary scan — these always count if mentioned with avoidance language.
+    # Top-12 vocabulary scan — always catch these if any avoidance language present.
     for term in ALLERGY_VOCAB:
         if term in text and (
             has_allergy_keyword
@@ -376,18 +376,20 @@ def _safety_net_allergies(parsed: ParsedOrderOut, incoming: IncomingOrder) -> No
         ):
             found.add(term)
 
-    # Open-ended scan — capture any food word paired with allergy language.
+    # Open-ended scan — capture food words paired with allergy language.
+    stop = {
+        "to", "the", "a", "an", "from", "is", "be", "with", "on",
+        "of", "in", "for", "and", "or", "but", "not", "no", "any",
+        "anything", "this", "that", "please", "thanks", "thank",
+        "severe", "anaphylactic", "allergy", "allergic", "allergies",
+        "have", "has", "do", "does", "i", "me", "my", "customer",
+        "problem", "worries", "contact", "rush", "substitute", "swap",
+        "changes", "modifications", "extra", "additional", "more",
+    }
     if has_allergy_keyword:
-        stop = {
-            "to", "the", "a", "an", "from", "is", "be", "with", "on",
-            "of", "in", "for", "and", "or", "but", "not", "no", "any",
-            "anything", "this", "that", "please", "thanks", "thank",
-            "severe", "anaphylactic", "allergy", "allergic", "allergies",
-            "have", "has", "do", "does", "i", "me", "my", "customer",
-        }
+        # Classic proximity patterns — food word close to allergy keyword.
         patterns = [
             r"allergic to ([a-z\-]+)",
-            r"no ([a-z\-]+)\s*[—\-–:,]?\s*(?:severe\s+)?allerg",
             r"([a-z\-]+)\s+(?:severe\s+)?allerg",
             r"do not (?:contain|include|use)\s+([a-z\-]+)",
             r"severe ([a-z\-]+) allerg",
@@ -397,6 +399,23 @@ def _safety_net_allergies(parsed: ParsedOrderOut, incoming: IncomingOrder) -> No
             for raw in re.findall(pat, text):
                 term = raw.strip(" -")
                 if term and term not in stop and len(term) > 1:
+                    found.add(term)
+
+    # Per-fragment scan: if a FRAGMENT itself contains allergy language, pull
+    # all "no X" patterns from that entire fragment regardless of word distance.
+    # This catches "No onions on anything — severe allergy" where the food and
+    # keyword are separated by several words.
+    for fragment in fragments:
+        frag = fragment.lower()
+        if re.search(r"allerg|anaphyla|severe|do not", frag):
+            for m in re.findall(r"\bno\s+([a-z\-]+)", frag):
+                term = m.strip(" -")
+                if term and term not in stop and len(term) > 2:
+                    found.add(term)
+            # Also catch "without X" in allergy-flagged fragments
+            for m in re.findall(r"\bwithout\s+([a-z\-]+)", frag):
+                term = m.strip(" -")
+                if term and term not in stop and len(term) > 2:
                     found.add(term)
 
     parsed.detected_allergies = sorted(found)
