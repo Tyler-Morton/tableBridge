@@ -66,7 +66,7 @@ Everything runs locally with mock APIs — no real platform credentials needed. 
 ### Option 1 — Docker (one command)
 
 ```bash
-git clone https://github.com/<your-username>/tablebridge.git
+git clone https://github.com/Tyler-Morton/tablebridge.git
 cd tablebridge
 cp .env.example .env
 
