@@ -117,7 +117,11 @@ def _menu_context(menu: list[dict[str, Any]]) -> str:
     for cat in menu:
         lines.append(f"## {cat['name']}")
         for it in cat["items"]:
-            tags = f" [allergens: {','.join(it['allergen_tags'])}]" if it.get("allergen_tags") else ""
+            tags = (
+                f" [allergens: {','.join(it['allergen_tags'])}]"
+                if it.get("allergen_tags")
+                else ""
+            )
             avail = "" if it["available"] else " (86'd)"
             lines.append(f"  [{it['id']}] {it['name']} — ${it['price']:.2f}{tags}{avail}")
             for grp in it.get("modifier_groups", []):
@@ -129,8 +133,8 @@ def _menu_context(menu: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-SYSTEM_PROMPT = """You are TableBridge's AI order parser. Your job is to take a raw delivery-platform \
-order and map it precisely to the restaurant's Toast POS menu structure.
+SYSTEM_PROMPT = """You are TableBridge's AI order parser. Your job is to take a raw \
+delivery-platform order and map it precisely to the restaurant's Toast POS menu structure.
 
 Rules:
 1. For each raw item, find the matching menu item (by id) and produce a clean menu_item_name.
@@ -254,7 +258,9 @@ def _heuristic_fallback(
     ).lower()
     has_allergy_keyword = "allerg" in full_text or "anaphyla" in full_text
     for term in ALLERGY_VOCAB:
-        if term in full_text and (has_allergy_keyword or "no " in full_text or "without" in full_text):
+        if term in full_text and (
+            has_allergy_keyword or "no " in full_text or "without" in full_text
+        ):
             detected_allergies.append(term)
     # If the customer literally says "allergy" but the allergen isn't in our
     # top-12 vocab (e.g. tomato, cilantro), still flag it. Try to extract the

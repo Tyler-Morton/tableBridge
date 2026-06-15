@@ -1,5 +1,8 @@
 # TableBridge
 
+[![CI](https://github.com/Tyler-Morton/tableBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/Tyler-Morton/tableBridge/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 > AI-powered middleware that connects DoorDash, Uber Eats, and Grubhub to a Toast POS — so restaurants stop juggling three tablets and stop missing allergy notes.
 
 TableBridge is a portfolio MVP demonstrating a production-shaped restaurant integration platform. Delivery orders flow in from three platforms, get parsed by **Claude Sonnet 4** into the restaurant's actual Toast menu schema, surface to a tablet for human review (with allergy detection and confidence scoring), and fire to the kitchen. It also keeps 86'd-item availability synced both directions across all three platforms.

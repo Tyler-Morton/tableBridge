@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     ai_model: str = "claude-sonnet-4-20250514"
 
     # Rate limiting
+    rate_limit_enabled: bool = True
     auth_rate_limit: str = "10/minute"
     webhook_rate_limit: str = "60/minute"
     pin_max_attempts: int = 5

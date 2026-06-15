@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.database import AsyncSessionLocal, get_db
 from app.models.orders import IncomingOrderRaw, ParsedOrder
+from app.ratelimit import limiter
 from app.schemas.orders import IncomingOrder
 from app.security import verify_hmac_signature
 from app.services import ai_parser, mock_doordash, mock_grubhub, mock_toast, mock_ubereats
@@ -140,6 +141,7 @@ async def _parse_and_broadcast(raw_id: int, incoming: IncomingOrder) -> None:
 
 
 @router.post("/doordash")
+@limiter.limit(settings.webhook_rate_limit)
 async def doordash_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -159,6 +161,7 @@ async def doordash_webhook(
 
 
 @router.post("/ubereats")
+@limiter.limit(settings.webhook_rate_limit)
 async def ubereats_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -178,6 +181,7 @@ async def ubereats_webhook(
 
 
 @router.post("/grubhub")
+@limiter.limit(settings.webhook_rate_limit)
 async def grubhub_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),

@@ -9,8 +9,8 @@ os.environ.setdefault("JWT_SECRET_KEY", secrets.token_hex(32))
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ.setdefault("ANTHROPIC_API_KEY", "")  # heuristic fallback path
 os.environ.setdefault("DEMO_MODE", "false")
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")  # don't trip shared counter in tests
 
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 

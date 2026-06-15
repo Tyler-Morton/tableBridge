@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 
-class UserRole(str, PyEnum):
+class UserRole(str, PyEnum):  # noqa: UP042  (str+Enum is intentional for SQLAlchemy/JSON)
     owner = "owner"
     manager = "manager"
     server = "server"

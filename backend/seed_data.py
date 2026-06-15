@@ -343,7 +343,11 @@ async def maybe_seed() -> None:
                             )
                         )
         await db.commit()
-        logger.info("Seed complete: 1 restaurant, %d users, %d categories", len(SEED_USERS), len(SEED_MENU))
+        logger.info(
+            "Seed complete: 1 restaurant, %d users, %d categories",
+            len(SEED_USERS),
+            len(SEED_MENU),
+        )
 
 
 async def _main() -> None:

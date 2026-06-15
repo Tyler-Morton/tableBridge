@@ -60,7 +60,10 @@ async def test_allergy_detection():
         }
     )
     menu = [{"id": 1, "name": "Salads", "items": [
-        {"id": 200, "name": "Caesar Salad", "available": True, "allergen_tags": [], "price": 11.0, "modifier_groups": []},
+        {
+            "id": 200, "name": "Caesar Salad", "available": True,
+            "allergen_tags": [], "price": 11.0, "modifier_groups": [],
+        },
     ]}]
     parsed, _, _ = await ai_parser.parse_order(incoming, menu)
     assert "peanuts" in parsed.detected_allergies
@@ -94,7 +97,10 @@ async def test_order_note_allergy_with_distant_keyword():
         }
     )
     menu = [{"id": 1, "name": "Entrees", "items": [
-        {"id": 9, "name": "Pan-Seared Chicken", "available": True, "allergen_tags": [], "price": 18.0, "modifier_groups": []},
+        {
+            "id": 9, "name": "Pan-Seared Chicken", "available": True,
+            "allergen_tags": [], "price": 18.0, "modifier_groups": [],
+        },
     ]}]
     parsed, _, _ = await ai_parser.parse_order(incoming, menu)
     assert "onions" in parsed.detected_allergies

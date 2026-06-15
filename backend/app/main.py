@@ -8,12 +8,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from app.config import get_settings
 from app.database import create_tables
+from app.ratelimit import limiter
 from app.routers import (
     auth as auth_router,
 )
@@ -44,8 +44,6 @@ from app.websockets import manager
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s — %(message)s")
 logger = logging.getLogger(__name__)
 settings = get_settings()
-
-limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
@@ -95,7 +93,8 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'"
+        "default-src 'self'; img-src 'self' data:; "
+        "script-src 'self'; style-src 'self' 'unsafe-inline'"
     )
     return response
 

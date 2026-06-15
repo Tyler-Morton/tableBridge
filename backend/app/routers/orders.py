@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -25,7 +25,8 @@ def _display_name(full_name: str) -> str:
 def _status_for(review: OrderReview | None, flagged: bool) -> str:
     if not review:
         return "pending_review"
-    return {"send": "sent", "flag": "flagged", "reject": "rejected"}.get(review.action, review.action)
+    mapping = {"send": "sent", "flag": "flagged", "reject": "rejected"}
+    return mapping.get(review.action, review.action)
 
 
 @router.get("", response_model=list[OrderListItem])

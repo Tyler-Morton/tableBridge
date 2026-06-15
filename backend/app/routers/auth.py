@@ -11,6 +11,7 @@ from app.config import get_settings
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.auth import RefreshToken, User
+from app.ratelimit import limiter
 from app.schemas.auth import (
     LoginRequest,
     PinLoginRequest,
@@ -67,6 +68,7 @@ async def _issue_tokens(db: AsyncSession, user: User) -> TokenPair:
 
 
 @router.post("/login", response_model=TokenPair)
+@limiter.limit(settings.auth_rate_limit)
 async def login(
     payload: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)
 ) -> TokenPair:
@@ -96,6 +98,7 @@ async def login(
 
 
 @router.post("/pin-login", response_model=TokenPair)
+@limiter.limit(settings.auth_rate_limit)
 async def pin_login(
     payload: PinLoginRequest, request: Request, db: AsyncSession = Depends(get_db)
 ) -> TokenPair:

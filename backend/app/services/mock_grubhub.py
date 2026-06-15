@@ -31,7 +31,9 @@ def _mk_order(menu_pool: list[dict[str, Any]]) -> dict[str, Any]:
         "short_id": f"GH-{random.randint(10000, 99999)}",
         "state": "RECEIVED",
         "order_placed_time": datetime.now(UTC).isoformat(),
-        "expected_time": (datetime.now(UTC) + timedelta(minutes=random.randint(20, 60))).isoformat(),
+        "expected_time": (
+            datetime.now(UTC) + timedelta(minutes=random.randint(20, 60))
+        ).isoformat(),
         "diner": diner,
         "lines": [
             {

@@ -48,3 +48,33 @@ async def test_bad_password_rejected(client):
 async def test_protected_endpoint_requires_token(client):
     resp = await client.get("/orders")
     assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_login_rate_limited(client):
+    """A flood of login attempts from one IP must hit a 429.
+
+    Rate limiting is disabled in the test env by default (shared in-memory
+    counter), so we flip it on for this test and reset afterward. The limiter
+    runs after body validation, so we send a well-formed (but wrong) body.
+    """
+    from app.ratelimit import limiter
+
+    limiter.reset()
+    limiter.enabled = True
+    try:
+        codes = [
+            (
+                await client.post(
+                    "/auth/login",
+                    json={"email": "nobody@example.com", "password": "wrongpass123"},
+                )
+            ).status_code
+            for _ in range(12)
+        ]
+        # default limit is 10/minute → at least one 429 once the bucket empties
+        assert 429 in codes
+        assert codes[0] == 401  # first attempt reaches the handler
+    finally:
+        limiter.enabled = False
+        limiter.reset()
