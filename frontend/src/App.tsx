@@ -1,19 +1,32 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, NavLink, useLocation } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { OrderAlert } from "@/components/OrderAlert";
 import Login from "@/routes/Login";
-import Dashboard from "@/routes/Dashboard";
-import ReviewOrder from "@/routes/ReviewOrder";
-import KitchenDisplay from "@/routes/KitchenDisplay";
-import History from "@/routes/History";
-import Reports from "@/routes/Reports";
-import Settings from "@/routes/Settings";
 import {
   LayoutDashboard, ChefHat, History as HistoryIcon, BarChart3,
   Settings as SettingsIcon, LogOut,
 } from "lucide-react";
+
+// Code-split routes so heavy dependencies (e.g. Recharts on Reports) stay out
+// of the initial bundle and load only when the route is first visited.
+const Dashboard = lazy(() => import("@/routes/Dashboard"));
+const ReviewOrder = lazy(() => import("@/routes/ReviewOrder"));
+const KitchenDisplay = lazy(() => import("@/routes/KitchenDisplay"));
+const History = lazy(() => import("@/routes/History"));
+const Reports = lazy(() => import("@/routes/Reports"));
+const Settings = lazy(() => import("@/routes/Settings"));
+
+function RouteFallback() {
+  return (
+    <div className="flex items-center justify-center py-20 text-slate-400">
+      <Loader2 size={22} className="animate-spin" />
+    </div>
+  );
+}
 
 function ProtectedShell({ children }: { children: React.ReactNode }) {
   const { isAuthed, user, logout } = useAuth();
@@ -59,7 +72,7 @@ function ProtectedShell({ children }: { children: React.ReactNode }) {
           animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
         >
-          {children}
+          <Suspense fallback={<RouteFallback />}>{children}</Suspense>
         </motion.div>
       </main>
     </div>

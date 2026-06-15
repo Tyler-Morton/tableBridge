@@ -55,7 +55,7 @@ Everything runs locally with mock APIs — no real platform credentials needed. 
 
 **Backend:** Python 3.11 · FastAPI · SQLAlchemy 2.0 (async) · SQLite + aiosqlite · Pydantic v2 (strict) · Anthropic SDK · APScheduler · slowapi · Argon2 · cryptography (AES-256-GCM) · python-jose (JWT)
 
-**Frontend:** React 18 · Vite · TypeScript (strict mode) · TailwindCSS · Zustand · TanStack Query · Native WebSocket API · Web Audio API · lucide-react
+**Frontend:** React 18 · Vite · TypeScript (strict mode) · TailwindCSS · Zustand · TanStack Query · Motion (Framer Motion) · Recharts · Native WebSocket API · Web Audio API · lucide-react · route-level code-splitting
 
 **Tooling:** Docker Compose · pytest · vitest · ruff · mypy · ESLint · Prettier
 

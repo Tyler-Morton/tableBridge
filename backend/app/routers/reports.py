@@ -101,6 +101,56 @@ async def summary(
     }
 
 
+@router.get("/timeseries")
+async def timeseries(
+    days: int = Query(default=14, ge=1, le=90),
+    user: User = Depends(require_any),
+    db: AsyncSession = Depends(get_db),
+) -> list[dict[str, Any]]:
+    """Orders per day per platform — dense series for the trend chart.
+
+    Returns one row per calendar day in the window (zero-filled), each with a
+    per-platform breakdown plus a total, oldest first.
+    """
+    since = datetime.now(UTC) - timedelta(days=days)
+    rows = (
+        await db.execute(
+            select(
+                func.date(IncomingOrderRaw.received_at).label("day"),
+                IncomingOrderRaw.platform,
+                func.count(IncomingOrderRaw.id),
+            )
+            .where(IncomingOrderRaw.received_at >= since)
+            .group_by("day", IncomingOrderRaw.platform)
+        )
+    ).all()
+
+    # Index counts by (day, platform)
+    counts: dict[str, dict[str, int]] = {}
+    for day, platform, count in rows:
+        counts.setdefault(str(day), {})[platform] = int(count)
+
+    platforms = ("doordash", "ubereats", "grubhub")
+    today = datetime.now(UTC).date()
+    series: list[dict[str, Any]] = []
+    for offset in range(days - 1, -1, -1):
+        d = today - timedelta(days=offset)
+        key = d.isoformat()
+        day_counts = counts.get(key, {})
+        row: dict[str, Any] = {
+            "day": d.strftime("%m/%d"),
+            "date": key,
+        }
+        total = 0
+        for p in platforms:
+            n = day_counts.get(p, 0)
+            row[p] = n
+            total += n
+        row["total"] = total
+        series.append(row)
+    return series
+
+
 @router.get("/allergies")
 async def allergy_frequency(
     days: int = Query(default=30, ge=1, le=365),
