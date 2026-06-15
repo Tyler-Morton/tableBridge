@@ -67,6 +67,42 @@ async def test_allergy_detection():
     assert parsed.flagged_for_review
 
 
+@pytest.mark.asyncio
+async def test_order_note_allergy_with_distant_keyword():
+    """Regression: 'No onions on anything — severe allergy' must flag onions.
+
+    The food word and the allergy keyword are separated by several words, which
+    the original proximity regex missed. The per-fragment sweep catches it.
+    Also verifies a non-top-12 allergen (onion) plus item-note dairy/eggs.
+    """
+    incoming = IncomingOrder.model_validate(
+        {
+            "platform": "doordash",
+            "external_order_id": "DD-ONION",
+            "customer_name": "Pat L",
+            "placed_at": datetime.now(UTC),
+            "items": [
+                {
+                    "raw_name": "Pan-Seared Chicken",
+                    "quantity": 2,
+                    "raw_modifiers": ["Extra hot", "No onions", "Well done"],
+                    "raw_special_instructions": "Vegan please — no dairy or eggs",
+                },
+            ],
+            "raw_special_instructions": "No onions on anything — severe allergy",
+            "raw_payload": {},
+        }
+    )
+    menu = [{"id": 1, "name": "Entrees", "items": [
+        {"id": 9, "name": "Pan-Seared Chicken", "available": True, "allergen_tags": [], "price": 18.0, "modifier_groups": []},
+    ]}]
+    parsed, _, _ = await ai_parser.parse_order(incoming, menu)
+    assert "onions" in parsed.detected_allergies
+    assert "dairy" in parsed.detected_allergies
+    assert "eggs" in parsed.detected_allergies
+    assert parsed.flagged_for_review
+
+
 def test_pii_stripper_removes_customer_name():
     """Verify PII never leaves _strip_pii."""
     incoming = IncomingOrder.model_validate(

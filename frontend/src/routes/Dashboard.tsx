@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { api } from "@/api/client";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import type { OrderListItem } from "@/types";
 import { ArrowRight, AlertCircle, ChefHat } from "lucide-react";
 
 export default function Dashboard() {
+  const reduce = useReducedMotion();
   const { data: orders = [], isLoading } = useQuery<OrderListItem[]>({
     queryKey: ["orders", "recent"],
     queryFn: () => api("/orders?limit=20"),
@@ -54,17 +56,27 @@ export default function Dashboard() {
         ) : pending.length === 0 ? (
           <Empty msg="No orders waiting — system is calm." />
         ) : (
-          <div className="space-y-2">
-            {pending.map((o, i) => (
-              <div
-                key={o.id}
-                className="animate-enter"
-                style={{ animationDelay: `${i * 45}ms` }}
-              >
-                <OrderCard order={o} highlight />
-              </div>
-            ))}
-          </div>
+          <motion.div layout className="space-y-2">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {pending.map((o, i) => (
+                <motion.div
+                  key={o.id}
+                  layout
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+                  animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                  exit={reduce ? { opacity: 0 } : { opacity: 0, x: 24, scale: 0.97 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 380,
+                    damping: 32,
+                    delay: reduce ? 0 : Math.min(i * 0.04, 0.2),
+                  }}
+                >
+                  <OrderCard order={o} highlight />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </section>
 
@@ -76,17 +88,27 @@ export default function Dashboard() {
         {recent.length === 0 ? (
           <Empty msg="Nothing yet — incoming demo orders will appear shortly." />
         ) : (
-          <div className="space-y-2">
-            {recent.map((o, i) => (
-              <div
-                key={o.id}
-                className="animate-enter"
-                style={{ animationDelay: `${i * 35}ms` }}
-              >
-                <OrderCard order={o} />
-              </div>
-            ))}
-          </div>
+          <motion.div layout className="space-y-2">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {recent.map((o, i) => (
+                <motion.div
+                  key={o.id}
+                  layout
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+                  animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 380,
+                    damping: 32,
+                    delay: reduce ? 0 : Math.min(i * 0.03, 0.2),
+                  }}
+                >
+                  <OrderCard order={o} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </section>
     </div>

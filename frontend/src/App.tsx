@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, NavLink, useLocation } from "react-router-dom";
+import { motion, useReducedMotion } from "motion/react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { OrderAlert } from "@/components/OrderAlert";
@@ -18,6 +19,7 @@ function ProtectedShell({ children }: { children: React.ReactNode }) {
   const { isAuthed, user, logout } = useAuth();
   useWebSocket();
   const loc = useLocation();
+  const reduce = useReducedMotion();
   if (!isAuthed) return <Navigate to="/login" state={{ from: loc }} replace />;
 
   return (
@@ -50,7 +52,16 @@ function ProtectedShell({ children }: { children: React.ReactNode }) {
           </button>
         </nav>
       </header>
-      <main className="tablet-shell flex-1 p-5">{children}</main>
+      <main className="tablet-shell flex-1 p-5">
+        <motion.div
+          key={loc.pathname}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+          animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+        >
+          {children}
+        </motion.div>
+      </main>
     </div>
   );
 }
