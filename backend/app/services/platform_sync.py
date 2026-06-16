@@ -1,7 +1,9 @@
-"""Two-way 86'd-item sync engine.
+"""86'd-item sync engine (Toast -> delivery platforms).
 
 Detects availability changes in the mock Toast menu and pushes them to all three
 mock delivery platforms. Has retry-with-backoff and a periodic reconciliation pass.
+Toast is the source of truth; sync is one-directional today, with the
+reconciliation pass structured to support real two-way APIs later.
 """
 
 from __future__ import annotations

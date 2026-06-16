@@ -9,6 +9,12 @@ TableBridge is a portfolio MVP demonstrating a production-shaped restaurant inte
 
 Everything runs locally with mock APIs — no real platform credentials needed. The architecture is production-shaped: swapping in real APIs only requires changing a few base URLs.
 
+<p align="center">
+  <img src="screenshots/04-review.png" alt="TableBridge review screen — raw delivery order on the left, Claude's Toast-ready parse on the right with an allergy alert" width="100%">
+  <br>
+  <em>The review screen: raw order (left) vs. Claude's Toast-ready parse (right), with allergy detection and per-line confidence.</em>
+</p>
+
 ---
 
 ## Highlights
@@ -18,10 +24,16 @@ Everything runs locally with mock APIs — no real platform credentials needed. 
 - **Server-side regex safety net** for allergies — Claude detects them, but a deterministic post-processor double-checks every text field, because missing an allergy is the worst possible failure
 - **PII stripped** before any data hits Anthropic — customer name, phone, and address never leave the box
 - **Real-time WebSocket** push to the tablet UI with looping audio alert that won't stop until acknowledged
-- **Two-way 86'd-item sync** with exponential backoff retry (5s → 30s → 2min) and 15-minute reconciliation pass
+- **86'd-item sync** that pushes Toast availability to all three platforms, with backoff retry (5s → 30s → 2min) and a 15-minute reconciliation pass
 - **Production-realistic security**: HMAC webhook signatures, 5-minute replay window, idempotency, AES-256-GCM at-rest encryption, Argon2id password + PIN hashing, rotated JWT refresh tokens, role-based access, append-only audit log, slowapi rate limiting, CSP headers
 - **React 18 + TypeScript strict** frontend with Tailwind, TanStack Query, Zustand
 - **One-command startup** via Docker Compose; auto-seeds a sample restaurant + 3 users + ~14 menu items on first boot
+
+## Screenshots
+
+| Dashboard — live order queue | Reports — analytics |
+| --- | --- |
+| ![Dashboard with pending review and recent activity](screenshots/02-dashboard.png) | ![Reports page with order-volume, platform split, and allergy charts](screenshots/06-reports.png) |
 
 ## Architecture
 
@@ -50,7 +62,7 @@ Everything runs locally with mock APIs — no real platform credentials needed. 
                                   ▼
                        Kitchen Display screen
 
-   86'd two-way sync ──► all 3 platforms (every 30s)
+   86'd sync: Toast ──► all 3 platforms (every 30s)
    Reconciliation pass (every 15m)
 ```
 
@@ -157,7 +169,7 @@ tablebridge/
 │   │       ├── ai_parser.py        Claude tool-use + PII stripper + safety-net regex
 │   │       ├── encryption.py       AES-256-GCM
 │   │       ├── audit.py            append-only audit log
-│   │       ├── platform_sync.py    86'd two-way sync + reconcile
+│   │       ├── platform_sync.py    86'd sync (Toast→platforms) + reconcile
 │   │       ├── mock_orders.py      demo generator
 │   │       └── mock_{doordash,ubereats,grubhub,toast}.py
 │   ├── seed_data.py                idempotent seed (auto-runs on first boot)
